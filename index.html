@@ -3,12 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>p5.js Gravity Platformer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <title>Retro Snake Game</title>
+    <!-- Tailwind is included, but we prioritize custom CSS for the retro look -->
+    <script src="https://cdn.tailwindcss.com"></script> 
+    <style>
+        /* Base Retro Theme */
+        body {
+            background-color: #111111; /* Deep black */
+            color: #33ff33; /* Neon Green */
+            font-family: 'Courier New', Courier, monospace; /* Monospace for retro feel */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Game Container (The Phone Screen) */
+        #game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 4px solid #33ff33;
+            box-shadow: 0 0 20px #33ff33; /* Glow effect */
+            background-color: #1f1f1f;
+            padding: 10px;
+            border-radius: 5px; /* Minimal rounding */
+        }
+
+        /* Canvas (The Game Screen) */
+        #gameCanvas {
+            border: 2px solid #33ff33;
+            background-color: #000000;
+            image-rendering: pixelated; /* Essential for sharp, blocky pixels */
+        }
+
+        /* Info and Scoreboard */
+        .info-panel {
+            text-align: center;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+        }
+        
+        /* Control Buttons */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .controls button {
+            background-color: #000000;
+            color: #33ff33;
+            border: 2px solid #33ff33;
+            padding: 8px 15px;
+            margin: 5px 0;
+            cursor: pointer;
+            font-size: 1rem;
+            text-transform: uppercase;
+            box-shadow: 0 0 5px #33ff33;
+            transition: background-color 0.1s, box-shadow 0.1s;
+        }
+
+        .controls button:hover {
+            background-color: #1a1a1a;
+            box-shadow: 0 0 10px #33ff33;
+        }
+        
+        .controls button:active {
+            background-color: #33ff33;
+            color: #000000;
+        }
+
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 3px solid #ff3333; /* Red for Game Over */
+            color: #ff3333;
+            padding: 20px;
+            text-align: center;
+            z-index: 20;
+            box-shadow: 0 0 25px #ff3333;
+            text-transform: uppercase;
+            display: none; /* Hidden by default */
+            max-width: 350px; /* Constrain size for mobile */
+        }
+        
+        .message-box button {
+             margin-top: 15px;
+             border: 2px solid #33ff33;
+             color: #33ff33;
+             background: #000;
+             padding: 10px 20px;
+             cursor: pointer;
+        }
+
+        /* Styles for the existing Gemini Feature (Analysis) */
+        #generate-commentary {
+            background-color: #000000;
+            color: #ff3333; /* Neon Red/Orange for action */
+            border: 2px solid #ff3333;
+            box-shadow: 0 0 5px #ff3333;
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            transition: background-color 0.1s, box-shadow 0.1s;
+        }
+
+        #generate-commentary:hover {
+            background-color: #1a0000;
+            box-shadow: 0 0 15px #ff3333;
+        }
+        
+        #commentary-output {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #33ff33;
+            background-color: #050505;
+            min-height: 40px;
+            text-align: left;
+            font-size: 0.8rem;
+            color: #33ff33;
+            box-shadow: inset 0 0 5px #33ff33; /* Inner glow for terminal screen look */
+        }
+
+        /* Styles for the existing Gemini Feature (Tip Generator) */
+        #generate-tip {
+            background-color: #000000;
+            color: #33ff33; 
+            border: 2px solid #33ff33;
+            box-shadow: 0 0 5px #33ff33;
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            transition: background-color 0.1s, box-shadow 0.1s;
+        }
+
+        #generate-tip:hover {
+            background-color: #1a1a1a;
+            box-shadow: 0 0 10px #33ff33;
+        }
+
+        #tip-output {
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid #555;
+            background-color: #000;
+            min-height: 30px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #ccc;
+        }
+        
+        /* Styles for the NEW Manual Feature */
+        #generate-manual-page {
+            background-color: #000000;
+            color: #f7e018; /* Yellow/Gold for secret content */
+            border: 2px solid #f7e018;
+            box-shadow: 0 0 5px #f7e018;
+            margin-top: 10px;
+            width: 100%;
+            padding: 10px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            transition: background-color 0.1s, box-shadow 0.1s;
+        }
+
+        #generate-manual-page:hover {
+            background-color: #1a1700;
+            box-shadow: 0 0 15px #f7e018;
+        }
+        
+        #manual-output {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #f7e018;
+            background-color: #050505;
+            min-height: 40px;
+            text-align: left;
+            font-size: 0.8rem;
+            color: #f7e018;
+            box-shadow: inset 0 0 5px #f7e018;
+            text-transform: uppercase;
+        }
+        
+        #manual-output p {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
-    <div id="game-container"></div>
-    <script src="script.js"></script>
+
+    <div id="game-area">
+        <div class="info-panel">Score: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="controls">
+            <button id="startButton">Start Game</button>
+            
+            <!-- EXISTING GEMINI API FEATURE 2: RETRO TIP GENERATOR -->
+            <div class="mt-4 pt-4 border-t border-gray-900 w-full">
+                <button id="generate-tip">
+                    Generate Retro Tip ✨
+                </button>
+                <div id="tip-output" class="text-gray-400">
+                    // [ACCESSING BBS SERVER...]
+                </div>
+            </div>
+            <!-- END EXISTING GEMINI API FEATURE 2 -->
+            
+            <!-- NEW GEMINI API FEATURE 3: MANUAL PAGE GENERATOR (Structured Output) -->
+            <div class="mt-4 pt-4 border-t border-gray-900 w-full">
+                <button id="generate-manual-page">
+                    Retrieve Lost Manual Page 💾
+                </button>
+                <div id="manual-output" class="text-gray-400">
+                    // [MANUAL DATA CORE EMPTY]
+                </div>
+            </div>
+            <!-- END NEW GEMINI API FEATURE 3 -->
+
+            <div class="flex justify-between w-full mt-2">
+                <button id="leftButton" data-dir="left" class="w-1/4">←</button>
+                <div class="flex flex-col w-1/4">
+                    <button id="upButton" data-dir="up" class="w-full">↑</button>
+                    <button id="downButton" data-dir="down" class="w-full">↓</button>
+                </div>
+                <button id="rightButton" data-dir="right" class="w-1/4">→</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Message Box -->
+    <div id="gameOverBox" class="message-box">
+        <p class="text-xl font-bold">Game Over</p>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        
+        <!-- EXISTING GEMINI API FEATURE 1: HIGH SCORE ANALYSIS -->
+        <div class="mt-4 border-t border-gray-900 pt-4 w-full">
+            <button id="generate-commentary">
+                Receive High Score Analysis ✨
+            </button>
+            <div id="commentary-output">
+                // Commentary text will appear here.
+            </div>
+        </div>
+        <!-- END EXISTING GEMINI API FEATURE 1 -->
+
+        <button id="restartButton">Restart</button>
+    </div>
+
+    <script>
+        // --- Game Constants ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const TILE_SIZE = 20;
+        const TILE_COUNT = canvas.width / TILE_SIZE; 
+        const SCORE_DISPLAY = document.getElementById('score');
+        const GAME_OVER_BOX = document.getElementById('gameOverBox');
+        const FINAL_SCORE_DISPLAY = document.getElementById('finalScore');
+        const START_BUTTON = document.getElementById('startButton');
+        const RESTART_BUTTON = document.getElementById('restartButton');
+        const GENERATE_BUTTON = document.getElementById('generate-commentary');
+        const COMMENTARY_OUTPUT = document.getElementById('commentary-output');
+        const GENERATE_TIP_BUTTON = document.getElementById('generate-tip');
+        const TIP_OUTPUT = document.getElementById('tip-output');
+        const GENERATE_MANUAL_BUTTON = document.getElementById('generate-manual-page'); // New
+        const MANUAL_OUTPUT = document.getElementById('manual-output'); // New
+
+        // --- Game State Variables ---
+        let snake = [];
+        let food = {};
+        let dx = TILE_SIZE; // Velocity X
+        let dy = 0;          // Velocity Y
+        let score = 0;
+        let gameLoopId;
+        let isRunning = false;
+        let speed = 150; // Milliseconds between updates
+        
+        // Gemini API Configuration
+        const apiKey = ""; 
+
+        // --- Core Functions ---
+
+        function initGame() {
+            // Reset game state
+            snake = [
+                { x: TILE_SIZE * 4, y: TILE_SIZE * 10 }, // Head
+                { x: TILE_SIZE * 3, y: TILE_SIZE * 10 },
+                { x: TILE_SIZE * 2, y: TILE_SIZE * 10 }
+            ];
+            dx = TILE_SIZE; 
+            dy = 0;
+            score = 0;
+            speed = 150; 
+            SCORE_DISPLAY.textContent = score;
+            GAME_OVER_BOX.style.display = 'none';
+            isRunning = false; 
+            START_BUTTON.textContent = 'Start Game';
+            COMMENTARY_OUTPUT.textContent = "// WAITING FOR TERMINATION SIGNAL..."; 
+            TIP_OUTPUT.textContent = "// [ACCESSING BBS SERVER...] RETRO TIP READY."; 
+            MANUAL_OUTPUT.textContent = "// [MANUAL DATA CORE EMPTY]"; // Reset manual output
+
+            
+            clearCanvas();
+            drawSnake();
+            generateFood();
+            drawFood();
+        }
+
+        function startGame() {
+            if (!isRunning) {
+                isRunning = true;
+                START_BUTTON.textContent = 'Pause Game';
+                gameLoopId = setInterval(gameLoop, speed);
+            } else {
+                pauseGame();
+            }
+        }
+        
+        function pauseGame() {
+             clearInterval(gameLoopId);
+             isRunning = false;
+             START_BUTTON.textContent = 'Resume Game';
+        }
+
+
+        function gameLoop() {
+            if (checkCollision()) {
+                endGame();
+                return;
+            }
+
+            // 1. Move the snake: create new head position
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head); // Add new head to the front
+
+            // 2. Check for food
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                SCORE_DISPLAY.textContent = score;
+                generateFood();
+                increaseSpeed();
+            } else {
+                snake.pop(); // Remove the tail if no food eaten
+            }
+
+            // 3. Redraw everything
+            clearCanvas();
+            drawFood();
+            drawSnake();
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = '#000000'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawRect(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+            // Draw a small border for the pixel effect
+            ctx.strokeStyle = '#111111';
+            ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
+        }
+
+        function drawSnake() {
+            snake.forEach((segment, index) => {
+                const color = (index === 0) ? '#FFFFFF' : '#33FF33'; // White head, green body
+                drawRect(segment.x, segment.y, color);
+            });
+        }
+
+        function drawFood() {
+            drawRect(food.x, food.y, '#FF00FF'); // Magenta food (High-contrast retro)
+        }
+
+        function generateFood() {
+            food.x = Math.floor(Math.random() * TILE_COUNT) * TILE_SIZE;
+            food.y = Math.floor(Math.random() * TILE_COUNT) * TILE_SIZE;
+
+            // Ensure food does not spawn on the snake
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === food.x && snake[i].y === food.y) {
+                    generateFood(); // Recurse until a free tile is found
+                    return;
+                }
+            }
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+
+            // 1. Wall collision
+            const hitLeft = head.x < 0;
+            const hitRight = head.x >= canvas.width;
+            const hitTop = head.y < 0;
+            const hitBottom = head.y >= canvas.height;
+
+            if (hitLeft || hitRight || hitTop || hitBottom) return true;
+
+            // 2. Self collision (start checking from the 4th segment)
+            for (let i = 4; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) return true;
+            }
+
+            return false;
+        }
+        
+        function increaseSpeed() {
+            // Speed up the game loop slightly with each food item
+            if (speed > 50) {
+                 speed -= 5;
+            }
+            clearInterval(gameLoopId);
+            gameLoopId = setInterval(gameLoop, speed);
+        }
+
+        function endGame() {
+            clearInterval(gameLoopId);
+            isRunning = false;
+            FINAL_SCORE_DISPLAY.textContent = score;
+            GAME_OVER_BOX.style.display = 'block';
+            GENERATE_BUTTON.textContent = 'Receive High Score Analysis ✨';
+        }
+        
+        // --- Shared Fetch Handler (for both text functions) ---
+        async function fetchGeminiText(userQuery, systemPrompt, outputElement, buttonElement, buttonText) {
+            outputElement.textContent = ">>> ANALYZING DATA. PLEASE WAIT... [INITIATING AI]";
+            buttonElement.disabled = true;
+
+            const model = 'gemini-2.5-flash-preview-09-2025';
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            let attempt = 0;
+            const maxRetries = 3;
+            let generatedText = "ERROR [404]: CONNECTION FAILED. TRY LATER. PERIMETER LOCK ACTIVE.";
+
+            while (attempt < maxRetries) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        // Log HTTP error but continue retrying
+                        console.error(`Attempt ${attempt + 1}: HTTP Error! Status: ${response.status}`);
+                        throw new Error(`Non-OK HTTP Status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        outputElement.textContent = candidate.content.parts[0].text;
+                        buttonElement.textContent = buttonText;
+                        buttonElement.disabled = false;
+                        return; // Success
+                    }
+
+                } catch (error) {
+                    console.error(`Attempt ${attempt + 1} failed:`, error);
+                }
+                attempt++;
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000)); // Exponential backoff
+                }
+            }
+            
+            outputElement.textContent = generatedText;
+            buttonElement.disabled = false;
+            buttonElement.textContent = "ACCESS FAILED (RETRY)";
+        }
+        
+        // --- Gemini API Function 1: High Score Commentary ---
+        async function fetchGeminiCommentary() {
+            const currentScore = parseInt(FINAL_SCORE_DISPLAY.textContent);
+            const snakeLength = snake.length;
+            const userQuery = `The player achieved a score of ${currentScore} and the snake's final length was ${snakeLength}. Provide a one-sentence, dramatic, and retro-themed commentary on this performance.`;
+            const systemPrompt = "You are an 8-bit Arcade Game machine. Your tone is dramatic, slightly judgmental, and strictly retro. Use only uppercase letters and pixel-art punctuation like multiple exclamation marks or brackets. Do not include any introductory phrases or greetings. KEEP IT CONCISE AND IN ONE SENTENCE.";
+            
+            fetchGeminiText(userQuery, systemPrompt, COMMENTARY_OUTPUT, GENERATE_BUTTON, 'RE-ANALYZE PERFORMANCE');
+        }
+        
+        // --- Gemini API Function 2: Retro Tip Generator (Error Fixed using shared handler) ---
+        async function fetchGeminiTip() {
+            const userQuery = `Generate a single, unique strategic tip for a classic grid-based snake game. The tip should be presented as a secret or 'leaked' message from a retro bulletin board system (BBS) or hacker forum. Format it like a short, cryptic message.`;
+            const systemPrompt = "You are a cryptic, retro gaming oracle. Provide a strategic tip in a harsh, 8-bit style. Use uppercase letters, short sentences, and retro terminology (like 'GRID HACK,' 'SYSTEM OVERRIDE,' or 'BUFFER'). Do not exceed one full sentence or two short phrases. DO NOT include any introductory or concluding phrases.";
+            
+            fetchGeminiText(userQuery, systemPrompt, TIP_OUTPUT, GENERATE_TIP_BUTTON, 'Generate Retro Tip ✨');
+        }
+        
+        // --- Gemini API Function 3: Lost Manual Page Generator (Structured Output) ---
+        async function fetchManualPage() {
+            MANUAL_OUTPUT.textContent = ">>> DECODING DATA STREAM... [INITIATING STRUCTURED QUERY]";
+            GENERATE_MANUAL_BUTTON.disabled = true;
+
+            const userQuery = "Generate a single, cryptic rule entry for a fictional 'Advanced Player Manual' for a classic grid-based snake game. The rule should focus on either scoring, a secret mechanic, or an enemy/obstacle not seen in the game. Ensure the title, rule, and effect are all cryptic and written in a retro, uppercase style.";
+            
+            const model = 'gemini-2.5-flash-preview-09-2025';
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "title": { "type": "STRING", "description": "A cryptic title for the rule, e.g., 'THE GHOST MECHANIC'" },
+                            "rule": { "type": "STRING", "description": "The complex, hard-to-understand rule explanation." },
+                            "effect": { "type": "STRING", "description": "The short, dramatic consequence of the rule." }
+                        },
+                        "propertyOrdering": ["title", "rule", "effect"]
+                    }
+                },
+            };
+
+            let attempt = 0;
+            const maxRetries = 3;
+            let generatedText = "ERROR [500]: DATA CORRUPT. FILE NOT FOUND.";
+
+            while (attempt < maxRetries) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`Non-OK HTTP Status: ${response.status}`);
+
+                    const result = await response.json();
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const parsedJson = JSON.parse(jsonText);
+                    
+                    MANUAL_OUTPUT.innerHTML = `
+                        <p><strong>[PAGE CORRUPTED]</strong></p>
+                        <p><strong>RULE TITLE:</strong> ${parsedJson.title}</p>
+                        <p><strong>PROTOCOL:</strong> ${parsedJson.rule}</p>
+                        <p><strong>EFFECT:</strong> ${parsedJson.effect}</p>
+                    `;
+                    GENERATE_MANUAL_BUTTON.disabled = false;
+                    GENERATE_MANUAL_BUTTON.textContent = 'Retrieve Lost Manual Page 💾';
+                    return; // Success
+
+                } catch (error) {
+                    console.error(`Attempt ${attempt + 1} failed:`, error);
+                }
+                attempt++;
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                }
+            }
+            
+            MANUAL_OUTPUT.textContent = generatedText;
+            GENERATE_MANUAL_BUTTON.disabled = false;
+            GENERATE_MANUAL_BUTTON.textContent = "ACCESS FAILED (RETRY)";
+        }
+
+
+        // --- Input Handlers ---
+        
+        function changeDirection(newDx, newDy) {
+            // Prevent snake from immediately reversing direction
+            if ((newDx === -dx && newDx !== 0) || (newDy === -dy && newDy !== 0)) {
+                return;
+            }
+            dx = newDx;
+            dy = newDy;
+            
+            // If paused, start the game immediately on movement input
+            if (!isRunning) {
+                startGame();
+            }
+        }
+
+        document.addEventListener('keydown', event => {
+            if (!isRunning && event.key !== 'Enter') return; 
+
+            switch (event.key) {
+                case 'ArrowLeft':
+                    changeDirection(-TILE_SIZE, 0);
+                    break;
+                case 'ArrowRight':
+                    changeDirection(TILE_SIZE, 0);
+                    break;
+                case 'ArrowUp':
+                    changeDirection(0, -TILE_SIZE);
+                    break;
+                case 'ArrowDown':
+                    changeDirection(0, TILE_SIZE);
+                    break;
+                case 'Enter': // Use Enter to start/pause
+                    startGame();
+                    break;
+            }
+        });
+
+        // Touch/Button controls for mobile/UI
+        document.querySelectorAll('.controls button').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const dir = event.target.dataset.dir;
+                if (dir === 'up') changeDirection(0, -TILE_SIZE);
+                else if (dir === 'down') changeDirection(0, TILE_SIZE);
+                else if (dir === 'left') changeDirection(-TILE_SIZE, 0);
+                else if (dir === 'right') changeDirection(TILE_SIZE, 0);
+            });
+        });
+        
+        START_BUTTON.addEventListener('click', startGame);
+        RESTART_BUTTON.addEventListener('click', initGame);
+        GENERATE_BUTTON.addEventListener('click', fetchGeminiCommentary); 
+        GENERATE_TIP_BUTTON.addEventListener('click', fetchGeminiTip); 
+        GENERATE_MANUAL_BUTTON.addEventListener('click', fetchManualPage); // New Listener
+
+        // --- Initial Setup ---
+        initGame();
+
+    </script>
 </body>
 </html>
